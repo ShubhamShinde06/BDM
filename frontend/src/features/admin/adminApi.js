@@ -1,74 +1,49 @@
-// src/features/admin/adminApi.js
-import { api } from '../../services/api';
+import { api } from "../../app/api";
 
 export const adminApi = api.injectEndpoints({
-  endpoints: (builder) => ({
-    getDashboard: builder.query({
-      query: () => '/admin/dashboard',
-      providesTags: ['Dashboard'],
+  endpoints: (b) => ({
+    getAdminDashboard: b.query({
+      query: () => "/admin/dashboard",
+      providesTags: ["AdminDashboard"],
     }),
-    getAllHospitals: builder.query({
-      query: ({ status, page = 1, limit = 20 } = {}) => {
-        let url = '/admin/hospitals?';
-        if (status) url += `status=${status}&`;
-        url += `page=${page}&limit=${limit}`;
-        return url;
-      },
-      providesTags: ['Hospitals'],
+    getAdminHospitals: b.query({
+      query: (params = {}) => ({ url: "/admin/hospitals", params }),
+      providesTags: ["AdminHospitals"],
     }),
-    updateHospitalStatus: builder.mutation({
+    updateHospitalStatus: b.mutation({
       query: ({ id, status }) => ({
         url: `/admin/hospitals/${id}/status`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { status },
       }),
-      invalidatesTags: ['Hospitals', 'Dashboard'],
+      invalidatesTags: ["AdminHospitals", "AdminDashboard"],
     }),
-    getAllUsers: builder.query({
-      query: ({ role, status, bloodGroup, page = 1, limit = 20 } = {}) => {
-        let url = '/admin/users?';
-        if (role) url += `role=${role}&`;
-        if (status) url += `status=${status}&`;
-        if (bloodGroup) url += `bloodGroup=${bloodGroup}&`;
-        url += `page=${page}&limit=${limit}`;
-        return url;
-      },
-      providesTags: ['Users'],
+    getAdminUsers: b.query({
+      query: (params = {}) => ({ url: "/admin/users", params }),
+      providesTags: ["AdminUsers"],
     }),
-    toggleBlockUser: builder.mutation({
-      query: (id) => ({
-        url: `/admin/users/${id}/block`,
-        method: 'PATCH',
-      }),
-      invalidatesTags: ['Users'],
+    toggleBlockUser: b.mutation({
+      query: (id) => ({ url: `/admin/users/${id}/block`, method: "PATCH" }),
+      invalidatesTags: ["AdminUsers"],
     }),
-    deleteUser: builder.mutation({
-      query: (id) => ({
-        url: `/admin/users/${id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Users', 'Dashboard'],
+    deleteUser: b.mutation({
+      query: (id) => ({ url: `/admin/users/${id}`, method: "DELETE" }),
+      invalidatesTags: ["AdminUsers", "AdminDashboard"],
     }),
-    getAllRequests: builder.query({
-      query: ({ status, bloodGroup, urgency, page = 1, limit = 20 } = {}) => {
-        let url = '/admin/requests?';
-        if (status) url += `status=${status}&`;
-        if (bloodGroup) url += `bloodGroup=${bloodGroup}&`;
-        if (urgency) url += `urgency=${urgency}&`;
-        url += `page=${page}&limit=${limit}`;
-        return url;
-      },
-      providesTags: ['Requests'],
+    getAdminRequests: b.query({
+      query: (params = {}) => ({ url: "/admin/requests", params }),
+      providesTags: ["AdminRequests"],
     }),
   }),
+  overrideExisting: false,
 });
 
 export const {
-  useGetDashboardQuery,
-  useGetAllHospitalsQuery,
+  useGetAdminDashboardQuery,
+  useGetAdminHospitalsQuery,
   useUpdateHospitalStatusMutation,
-  useGetAllUsersQuery,
+  useGetAdminUsersQuery,
   useToggleBlockUserMutation,
   useDeleteUserMutation,
-  useGetAllRequestsQuery,
+  useGetAdminRequestsQuery,
 } = adminApi;

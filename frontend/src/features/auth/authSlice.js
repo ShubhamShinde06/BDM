@@ -1,47 +1,31 @@
-// src/features/auth/authSlice.js
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-  user: null,
-  accessToken: null,
-  isAuthenticated: false,
-  isLoading: false,
-  error: null,
-};
+const stored = (() => { try { const r = localStorage.getItem("bl_auth"); return r ? JSON.parse(r) : null; } catch { return null; } })();
 
 const authSlice = createSlice({
-  name: 'auth',
-  initialState,
+  name: "auth",
+  initialState: {
+    user: stored?.user ?? null,
+    accessToken: stored?.accessToken ?? null,
+    role: stored?.user?.role ?? null,
+  },
   reducers: {
-    setCredentials: (state, action) => {
-      const { user, accessToken } = action.payload;
-      state.user = user;
-      state.accessToken = accessToken;
-      state.isAuthenticated = true;
-      state.error = null;
+    setCredentials: (state, { payload }) => {
+      state.user = payload.user;
+      state.accessToken = payload.accessToken;
+      state.role = payload.user?.role ?? null;
+      localStorage.setItem("bl_auth", JSON.stringify({ user: payload.user, accessToken: payload.accessToken }));
     },
     logout: (state) => {
-      state.user = null;
-      state.accessToken = null;
-      state.isAuthenticated = false;
-    },
-    setError: (state, action) => {
-      state.error = action.payload;
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-    updateUser: (state, action) => {
-      state.user = { ...state.user, ...action.payload };
+      state.user = null; state.accessToken = null; state.role = null;
+      localStorage.removeItem("bl_auth");
     },
   },
 });
 
-export const { setCredentials, logout, setError, clearError, updateUser } = authSlice.actions;
-
-export const selectCurrentUser = (state) => state.auth.user;
-export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
-export const selectAuthError = (state) => state.auth.error;
-export const selectUserRole = (state) => state.auth.user?.role;
-
+export const { setCredentials, logout } = authSlice.actions;
+export const selectCurrentUser = (s) => s.auth.user;
+export const selectCurrentToken = (s) => s.auth.accessToken;
+export const selectCurrentRole = (s) => s.auth.role;
+export const selectIsAuthenticated = (s) => !!s.auth.accessToken;
 export default authSlice.reducer;

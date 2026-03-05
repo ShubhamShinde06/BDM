@@ -1,60 +1,39 @@
-// src/components/ui/Button.jsx
-import React from 'react';
-import 'twin.macro';
+import Spinner from "./Spinner";
 
-const Button = ({ 
-  children, 
-  variant = 'primary', 
-  size = 'md', 
-  loading = false,
-  disabled = false,
-  onClick,
-  type = 'button',
-  className = '',
-  ...props 
-}) => {
-  const baseStyles = tw`rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`;
-  
-  const variants = {
-    primary: tw`bg-red-600 text-white hover:bg-red-700 focus:ring-red-500`,
-    secondary: tw`bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500`,
-    outline: tw`border-2 border-red-600 text-red-600 hover:bg-red-50 focus:ring-red-500`,
-    danger: tw`bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500`,
-  };
-
-  const sizes = {
-    sm: tw`px-3 py-1.5 text-sm`,
-    md: tw`px-4 py-2 text-base`,
-    lg: tw`px-6 py-3 text-lg`,
-  };
-
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled || loading}
-      css={[
-        baseStyles,
-        variants[variant],
-        sizes[size],
-        (disabled || loading) && tw`opacity-50 cursor-not-allowed`,
-      ]}
-      className={className}
-      {...props}
-    >
-      {loading ? (
-        <div tw="flex items-center justify-center">
-          <svg tw="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-            <circle tw="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-            <path tw="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          Loading...
-        </div>
-      ) : (
-        children
-      )}
-    </button>
-  );
+const variants = {
+  primary:  { background: "#E8192C", color: "#fff", border: "none", boxShadow: "0 4px 14px rgba(232,25,44,0.3)" },
+  secondary:{ background: "#1F1F24", color: "#F5F5F7", border: "1px solid #2A2A30" },
+  ghost:    { background: "transparent", color: "#8E8E9A", border: "1px solid #2A2A30" },
+  danger:   { background: "rgba(232,25,44,0.12)", color: "#FF4D5E", border: "1px solid rgba(232,25,44,0.25)" },
+  success:  { background: "rgba(34,197,94,0.12)", color: "#22C55E", border: "1px solid rgba(34,197,94,0.25)" },
+  warning:  { background: "rgba(245,158,11,0.12)", color: "#F59E0B", border: "1px solid rgba(245,158,11,0.25)" },
+  info:     { background: "rgba(59,130,246,0.12)", color: "#3B82F6", border: "1px solid rgba(59,130,246,0.25)" },
+};
+const sizes = {
+  xs: { padding: "4px 10px", fontSize: "11px" },
+  sm: { padding: "7px 14px", fontSize: "12px" },
+  md: { padding: "10px 20px", fontSize: "14px" },
+  lg: { padding: "13px 28px", fontSize: "16px" },
 };
 
-export default Button;
+export default function Button({
+  children, variant = "primary", size = "md",
+  onClick, disabled, type = "button", loading, style = {}, full,
+}) {
+  return (
+    <button
+      type={type} onClick={onClick}
+      disabled={disabled || loading}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        gap: "7px", borderRadius: "10px", fontFamily: "'DM Sans',sans-serif",
+        fontWeight: 600, cursor: disabled || loading ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1, transition: "all 0.18s",
+        whiteSpace: "nowrap", width: full ? "100%" : undefined,
+        ...sizes[size], ...variants[variant], ...style,
+      }}
+    >
+      {loading ? <Spinner size={14} color="currentColor" /> : children}
+    </button>
+  );
+}

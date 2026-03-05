@@ -1,16 +1,13 @@
-// src/app/store.js
-import { configureStore } from '@reduxjs/toolkit';
-import { setupListeners } from '@reduxjs/toolkit/query';
-import rootReducer from './rootReducer';
-import { api } from '../services/api';
+import { configureStore } from "@reduxjs/toolkit";
+import { api } from "./api";
+import authReducer from "../features/auth/authSlice";
+import uiReducer from "../features/ui/uiSlice";
 
 export const store = configureStore({
-  reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false,
-    }).concat(api.middleware),
-  devTools: process.env.NODE_ENV !== 'production',
+  reducer: {
+    [api.reducerPath]: api.reducer,
+    auth: authReducer,
+    ui: uiReducer,
+  },
+  middleware: (gDM) => gDM().concat(api.middleware),
 });
-
-setupListeners(store.dispatch);
