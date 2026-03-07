@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 const URGENCY_LEVELS = ["low", "medium", "high", "critical"];
-const STATUSES = ["pending", "accepted", "rejected", "completed", "cancelled"];
+const STATUSES = ["pending", "donor_committed", "accepted", "rejected", "completed", "cancelled"];
 
 const bloodRequestSchema = new mongoose.Schema(
   {
@@ -71,6 +71,11 @@ const bloodRequestSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    committedDonor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    committedAt: { type: Date, default: null },
+    estimatedArrival: { type: Number, default: null },
+    commitNote: { type: String, trim: true, default: null },
+    commitCancelled: { type: Boolean, default: false },
     // Notification flags
     notificationSent: {
       type: Boolean,

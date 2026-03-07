@@ -11,7 +11,7 @@ export default function DashboardLayout() {
       <Sidebar />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <Topbar />
-        <main style={{ flex: 1, overflowY: "auto", padding: "28px" }}>
+        <main style={{ flex: 1, overflowY: "auto", padding: "28px"}}>
           <div className="fade-up">
             <Outlet />
           </div>

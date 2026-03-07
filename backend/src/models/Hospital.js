@@ -110,7 +110,7 @@ hospitalSchema.index({ "bloodInventory.bloodGroup": 1, "bloodInventory.units": 1
 
 // ─── Virtual: total units ─────────────────────────────────────────────────────
 hospitalSchema.virtual("totalUnits").get(function () {
-  return this.bloodInventory.reduce((sum, item) => sum + item.units, 0);
+  return (this.bloodInventory || []).reduce((sum, item) => sum + (item.units || 0), 0);
 });
 
 // ─── Pre-save: Hash password ──────────────────────────────────────────────────

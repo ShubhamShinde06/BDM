@@ -31,7 +31,8 @@ export default function ProfilePage() {
   if (isLoading) return <div style={{ display:"flex", justifyContent:"center", padding:"60px" }}><Spinner /></div>;
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:"20px", maxWidth:"580px" }}>
+    <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+      <div style={{ display:"flex", flexDirection:"column", gap:"20px", maxWidth:"580px", width:"100%" }}>
       <Card>
         <div style={{ display:"flex", alignItems:"center", gap:"16px", marginBottom:"22px" }}>
           <div style={{ width:"58px", height:"58px", borderRadius:"15px", background:"rgba(232,25,44,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Syne',sans-serif", fontSize:"22px", fontWeight:800, color:"#FF4D5E" }}>
@@ -73,5 +74,7 @@ export default function ProfilePage() {
         </div>
       </Card>
     </div>
+    </div>
+    
   );
 }

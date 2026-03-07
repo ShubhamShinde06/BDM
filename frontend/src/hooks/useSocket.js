@@ -43,6 +43,18 @@ export default function useSocket() {
       toast.success("🏆 Donation recorded!", { style: ts });
     });
 
+    s.on("donor_committed", ({ notification, estimatedArrival }) => {
+      dispatch(api.util.invalidateTags(["MyCommits", "NearbyRequests", "HospitalRequests", "Notifications"]));
+      if (notification?.title) {
+        toast(`🩸 ${notification.title}`, { style: ts, duration: 6000 });
+      }
+    });
+
+    s.on("donor_cancel_commit", ({ requestId }) => {
+      dispatch(api.util.invalidateTags(["HospitalRequests", "NearbyRequests"]));
+      toast("⚠️ A donor cancelled their commitment", { style: ts });
+    });
+
     s.on("notification", () => {
       dispatch(api.util.invalidateTags(["Notifications"]));
     });
@@ -62,7 +74,8 @@ export default function useSocket() {
 
     return () => {
       ["inventory_changed","inventory_bulk_updated","new_blood_request","request_status_update",
-       "donor_needed","donation_recorded","notification","low_stock_alert","force_logout","hospital_approved"]
+       "donor_needed","donation_recorded","notification","low_stock_alert","force_logout",
+       "hospital_approved","donor_committed","donor_cancel_commit"]
         .forEach((e) => s.off(e));
       disconnectSocket();
     };

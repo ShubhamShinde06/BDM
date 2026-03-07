@@ -33,7 +33,7 @@ export const api = createApi({
   tagTypes: [
     "Auth","AdminDashboard","AdminHospitals","AdminUsers","AdminRequests",
     "HospitalProfile","HospitalInventory","HospitalDonors","HospitalStats","HospitalRequests",
-    "UserProfile","UserStats","UserDonations","NearbyRequests","MyRequests","Notifications",
+    "UserProfile","UserStats","UserDonations","NearbyRequests","MyRequests","Notifications","MyCommits",
   ],
   endpoints: () => ({}),
 });

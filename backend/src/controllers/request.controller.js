@@ -110,6 +110,7 @@ export const getHospitalRequests = asyncHandler(async (req, res) => {
   const [requests, total] = await Promise.all([
     BloodRequest.find(filter)
       .populate("requester", "name email phone bloodGroup location")
+      .populate("committedDonor", "name phone bloodGroup location")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit)),
@@ -133,7 +134,7 @@ export const respondToRequest = asyncHandler(async (req, res) => {
   if (request.hospital.toString() !== req.user._id.toString()) {
     throw new ApiError("Not authorized to respond to this request", 403);
   }
-  if (request.status !== "pending") {
+  if (request.status !== "pending" && request.status !== "donor_committed") {
     throw new ApiError(`Request already ${request.status}`, 400);
   }
 

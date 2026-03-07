@@ -45,10 +45,10 @@ export default function HospitalRequests() {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:"20px" }}>
       <div style={{ display:"flex", gap:"8px", flexWrap:"wrap" }}>
-        {["","pending","accepted","rejected","completed"].map((s) => (
+        {["","pending","donor_committed","accepted","rejected","completed"].map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)}
             style={{ padding:"7px 16px", borderRadius:"999px", border:`1px solid ${statusFilter===s?"#E8192C":"#2A2A30"}`, background:statusFilter===s?"rgba(232,25,44,0.1)":"#1F1F24", color:statusFilter===s?"#FF4D5E":"#8E8E9A", fontSize:"13px", fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-            {s || "All"}
+            {s === "donor_committed" ? "🚗 Donor Coming" : s || "All"}
           </button>
         ))}
       </div>
@@ -75,12 +75,18 @@ export default function HospitalRequests() {
                 <Td><Badge status={r.status} /></Td>
                 <Td>
                   <div style={{ display:"flex", gap:"6px", flexWrap:"wrap" }}>
-                    {r.status === "pending" && (<>
+                    {(r.status === "pending" || r.status === "donor_committed") && (<>
                       <Button size="xs" variant="success" loading={responding} onClick={() => handleAccept(r._id)}>✓ Accept</Button>
                       <Button size="xs" variant="danger"  onClick={() => { setRejectModal(r._id); setRejectReason(""); }}>✕ Reject</Button>
                     </>)}
                     {r.status === "accepted" && (
                       <Button size="xs" variant="info" loading={completing} onClick={() => handleComplete(r._id)}>🏆 Complete</Button>
+                    )}
+                    {r.status === "donor_committed" && r.committedDonor && (
+                      <div style={{ fontSize:"11px", color:"#22C55E", background:"rgba(34,197,94,0.08)", padding:"4px 8px", borderRadius:"6px", marginTop:"4px", width:"100%" }}>
+                        🚗 {r.committedDonor.name} • ETA {r.estimatedArrival}min
+                        {r.committedDonor.phone && <span> • {r.committedDonor.phone}</span>}
+                      </div>
                     )}
                   </div>
                 </Td>

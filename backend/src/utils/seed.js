@@ -1,10 +1,6 @@
 /**
- * BloodLink Database Seeder
+ * BloodLink Database Seeder (India Version)
  * Run: npm run seed
- *
- * FIX: Use .create() for each document — insertMany() bypasses Mongoose
- * pre-save hooks so passwords are stored as plain text → bcrypt.compare()
- * always fails → "Invalid credentials"
  */
 
 import "dotenv/config";
@@ -25,12 +21,13 @@ const seed = async () => {
       BloodRequest.deleteMany({}),
       DonationHistory.deleteMany({}),
     ]);
-    console.log("🗑️  Cleared all collections");
+    console.log("🗑️ Cleared all collections");
 
-    // ── Main Admin ── (.create() triggers pre-save → bcrypt hashes password)
+    // ── Main Admin ──
+    // .create() triggers pre-save hook → bcrypt hashes password ✓
     const mainAdmin = await User.create({
       name: "Super Admin",
-      email: "admin@bloodlink.pk",
+      email: "admin@bloodlink.in",
       password: "Admin@123",
       role: "main_admin",
       bloodGroup: "O+",
@@ -38,14 +35,16 @@ const seed = async () => {
     });
     console.log("✅ Main admin:", mainAdmin.email);
 
-    // ── Hospitals ── (individual .create() — NOT insertMany, which skips hooks)
+    // ── Hospitals ──
+    // MUST use individual .create() — insertMany() skips pre-save hooks
+    // so passwords would be stored as plain text → "Invalid credentials"
     const h1 = await Hospital.create({
-      name: "City General Hospital",
-      email: "citygen@bloodlink.pk",
+      name: "Apollo Hospital",
+      email: "apollo@bloodlink.in",
       password: "Hospital@123",
-      licenseNumber: "LIC-CGH-2041",
-      contact: { phone: "+92-21-34567890", website: "https://citygen.pk" },
-      location: { address: "M.A. Jinnah Road", city: "Karachi", country: "Pakistan" },
+      licenseNumber: "LIC-APOLLO-2041",
+      contact: { phone: "+91-22-34567890", website: "https://www.apollohospitals.com" },
+      location: { address: "Parel", city: "Mumbai", country: "India" },
       status: "approved",
       approvedBy: mainAdmin._id,
       approvedAt: new Date(),
@@ -58,12 +57,12 @@ const seed = async () => {
     });
 
     const h2 = await Hospital.create({
-      name: "Shifa International Hospital",
-      email: "shifa@bloodlink.pk",
+      name: "AIIMS Delhi",
+      email: "aiims@bloodlink.in",
       password: "Hospital@123",
-      licenseNumber: "LIC-SIH-3082",
-      contact: { phone: "+92-51-8463000" },
-      location: { address: "H-8/4 Pitras Bukhari Road", city: "Islamabad", country: "Pakistan" },
+      licenseNumber: "LIC-AIIMS-3082",
+      contact: { phone: "+91-11-26588500" },
+      location: { address: "Ansari Nagar", city: "Delhi", country: "India" },
       status: "approved",
       approvedBy: mainAdmin._id,
       approvedAt: new Date(),
@@ -76,71 +75,133 @@ const seed = async () => {
     });
 
     const h3 = await Hospital.create({
-      name: "Aga Khan University Hospital",
-      email: "akuh@bloodlink.pk",
+      name: "Ruby Hall Clinic",
+      email: "rubyhall@bloodlink.in",
       password: "Hospital@123",
-      licenseNumber: "LIC-AKUH-5541",
-      contact: { phone: "+92-21-34930051" },
-      location: { address: "Stadium Road", city: "Karachi", country: "Pakistan" },
+      licenseNumber: "LIC-RUBY-5541",
+      contact: { phone: "+91-20-26123391" },
+      location: { address: "Dhole Patil Road", city: "Pune", country: "India" },
       status: "pending",
     });
 
     console.log("✅ 3 hospitals created");
 
-    // ── Users ── (individual .create() — NOT insertMany)
-    const ali = await User.create({
-      name: "Ali Hassan", email: "ali@bloodlink.pk", password: "User@123",
-      role: "donor", bloodGroup: "O+", phone: "+92-300-1234567",
-      location: { city: "Karachi" }, availability: true,
-      totalDonations: 3, lastDonation: new Date("2025-10-01"),
+    // ── Users ──
+    // MUST use individual .create() — same reason as hospitals above
+    const rahul = await User.create({
+      name: "Rahul Sharma",
+      email: "rahul@bloodlink.in",
+      password: "User@123",
+      role: "donor",
+      bloodGroup: "O+",
+      phone: "+91-9876543210",
+      location: { city: "Mumbai" },
+      availability: true,
+      totalDonations: 3,
+      lastDonation: new Date("2025-10-01"),
     });
-    const sara = await User.create({
-      name: "Sara Khan", email: "sara@bloodlink.pk", password: "User@123",
-      role: "receiver", bloodGroup: "A+", phone: "+92-321-9876543",
-      location: { city: "Karachi" },
+
+    const priya = await User.create({
+      name: "Priya Verma",
+      email: "priya@bloodlink.in",
+      password: "User@123",
+      role: "receiver",
+      bloodGroup: "A+",
+      phone: "+91-9876543211",
+      location: { city: "Mumbai" },
     });
-    const ahmed = await User.create({
-      name: "Ahmed Raza", email: "ahmed@bloodlink.pk", password: "User@123",
-      role: "donor", bloodGroup: "B-", phone: "+92-333-5554444",
-      location: { city: "Islamabad" }, availability: true, totalDonations: 1,
+
+    const arjun = await User.create({
+      name: "Arjun Patel",
+      email: "arjun@bloodlink.in",
+      password: "User@123",
+      role: "donor",
+      bloodGroup: "B-",
+      phone: "+91-9876543212",
+      location: { city: "Delhi" },
+      availability: true,
+      totalDonations: 1,
     });
-    const fatima = await User.create({
-      name: "Fatima Malik", email: "fatima@bloodlink.pk", password: "User@123",
-      role: "donor", bloodGroup: "AB+", location: { city: "Lahore" }, availability: false,
+
+    const neha = await User.create({
+      name: "Neha Singh",
+      email: "neha@bloodlink.in",
+      password: "User@123",
+      role: "donor",
+      bloodGroup: "AB+",
+      location: { city: "Pune" },
+      availability: false,
     });
-    const zaid = await User.create({
-      name: "Zaid Hussain", email: "zaid@bloodlink.pk", password: "User@123",
-      role: "receiver", bloodGroup: "O-", phone: "+92-312-1112222",
-      location: { city: "Islamabad" },
+
+    const vikram = await User.create({
+      name: "Vikram Joshi",
+      email: "vikram@bloodlink.in",
+      password: "User@123",
+      role: "receiver",
+      bloodGroup: "O-",
+      phone: "+91-9876543213",
+      location: { city: "Delhi" },
     });
+
     console.log("✅ 5 users created");
 
-    // ── Blood Requests ── (no passwords, insertMany is fine)
+    // ── Blood Requests ──
+    // BloodRequest has no password field so insertMany is safe here
     const requests = await BloodRequest.insertMany([
-      { requester: sara._id, hospital: h1._id, bloodGroup: "A+", units: 1, urgency: "high", status: "pending", reason: "Surgery scheduled" },
-      { requester: zaid._id, hospital: h2._id, bloodGroup: "O-", units: 2, urgency: "critical", status: "accepted", respondedBy: h2._id, respondedAt: new Date(), patientName: "Zaid Hussain" },
-      { requester: sara._id, hospital: h1._id, bloodGroup: "A+", units: 1, urgency: "medium", status: "rejected", respondedBy: h1._id, respondedAt: new Date(Date.now() - 86400000), rejectionReason: "Insufficient stock at time of request" },
+      {
+        requester: priya._id,
+        hospital: h1._id,
+        bloodGroup: "A+",
+        units: 1,
+        urgency: "high",
+        status: "pending",
+        reason: "Emergency surgery",
+      },
+      {
+        requester: vikram._id,
+        hospital: h2._id,
+        bloodGroup: "O-",
+        units: 2,
+        urgency: "critical",
+        status: "accepted",
+        respondedBy: h2._id,
+        respondedAt: new Date(),
+        patientName: "Vikram Joshi",
+      },
+      {
+        requester: priya._id,
+        hospital: h1._id,
+        bloodGroup: "A+",
+        units: 1,
+        urgency: "medium",
+        status: "rejected",
+        respondedBy: h1._id,
+        respondedAt: new Date(Date.now() - 86400000),
+        rejectionReason: "Stock unavailable",
+      },
     ]);
     console.log(`✅ ${requests.length} blood requests created`);
 
     // ── Donation History ──
     await DonationHistory.insertMany([
-      { donor: ali._id,   hospital: h1._id, bloodGroup: "O+", units: 1, donatedAt: new Date("2025-10-01") },
-      { donor: ali._id,   hospital: h2._id, bloodGroup: "O+", units: 1, donatedAt: new Date("2025-06-15") },
-      { donor: ahmed._id, hospital: h2._id, bloodGroup: "B-", units: 1, donatedAt: new Date("2025-09-20") },
+      { donor: rahul._id, hospital: h1._id, bloodGroup: "O+", units: 1, donatedAt: new Date("2025-10-01") },
+      { donor: rahul._id, hospital: h2._id, bloodGroup: "O+", units: 1, donatedAt: new Date("2025-06-15") },
+      { donor: arjun._id, hospital: h2._id, bloodGroup: "B-", units: 1, donatedAt: new Date("2025-09-20") },
     ]);
     console.log("✅ Donation history seeded");
 
     console.log("\n🌱 Seeded successfully!\n");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("📧 Credentials:");
-    console.log("  admin@bloodlink.pk   | Admin@123    | loginAs: user     (main_admin)");
-    console.log("  citygen@bloodlink.pk | Hospital@123 | loginAs: hospital (approved)");
-    console.log("  shifa@bloodlink.pk   | Hospital@123 | loginAs: hospital (approved)");
-    console.log("  akuh@bloodlink.pk    | Hospital@123 | loginAs: hospital (pending — blocked)");
-    console.log("  ali@bloodlink.pk     | User@123     | loginAs: user     (donor)");
-    console.log("  sara@bloodlink.pk    | User@123     | loginAs: user     (receiver)");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    console.log("  admin@bloodlink.in    | Admin@123    | loginAs: user     (main_admin)");
+    console.log("  apollo@bloodlink.in   | Hospital@123 | loginAs: hospital (approved)");
+    console.log("  aiims@bloodlink.in    | Hospital@123 | loginAs: hospital (approved)");
+    console.log("  rubyhall@bloodlink.in | Hospital@123 | loginAs: hospital (pending — blocked)");
+    console.log("  rahul@bloodlink.in    | User@123     | loginAs: user     (donor O+)");
+    console.log("  priya@bloodlink.in    | User@123     | loginAs: user     (receiver A+)");
+    console.log("  arjun@bloodlink.in    | User@123     | loginAs: user     (donor B-)");
+    console.log("  vikram@bloodlink.in   | User@123     | loginAs: user     (receiver O-)");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     process.exit(0);
   } catch (error) {

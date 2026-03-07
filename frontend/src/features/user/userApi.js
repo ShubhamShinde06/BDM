@@ -38,6 +38,25 @@ export const userApi = api.injectEndpoints({
       query: () => ({ url: "/users/notifications/read-all", method: "PATCH" }),
       invalidatesTags: ["Notifications"],
     }),
+    commitToDonate: b.mutation({
+      query: ({ requestId, ...body }) => ({
+        url: `/users/commit-donation/${requestId}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["NearbyRequests", "MyCommits"],
+    }),
+    cancelCommit: b.mutation({
+      query: (requestId) => ({
+        url: `/users/cancel-commit/${requestId}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["NearbyRequests", "MyCommits"],
+    }),
+    getMyCommits: b.query({
+      query: () => "/users/my-commits",
+      providesTags: ["MyCommits"],
+    }),
   }),
   overrideExisting: false,
 });
@@ -52,4 +71,7 @@ export const {
   useGetNotificationsQuery,
   useMarkNotificationReadMutation,
   useMarkAllReadMutation,
+  useCommitToDonateMutation,
+  useCancelCommitMutation,
+  useGetMyCommitsQuery,
 } = userApi;

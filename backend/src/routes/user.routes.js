@@ -9,6 +9,9 @@ import {
   getNotifications,
   markNotificationRead,
   markAllRead,
+  commitToDonate,
+  cancelCommit,
+  getMyCommits,
 } from "../controllers/user.controller.js";
 import { protect, authorize } from "../middleware/auth.js";
 import { paginationValidator } from "../validators/index.js";
@@ -43,5 +46,15 @@ router.patch("/notifications/:id/read", markNotificationRead);
 
 // PATCH /api/users/notifications/read-all
 router.patch("/notifications/read-all", markAllRead);
+
+// ── I'm Coming (donor commitment) ──────────────────────────────────────────
+// PATCH /api/users/commit-donation/:requestId
+router.patch("/commit-donation/:requestId", authorize("donor"), commitToDonate);
+
+// PATCH /api/users/cancel-commit/:requestId
+router.patch("/cancel-commit/:requestId", authorize("donor"), cancelCommit);
+
+// GET  /api/users/my-commits
+router.get("/my-commits", authorize("donor"), getMyCommits);
 
 export default router;

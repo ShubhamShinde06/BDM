@@ -7,19 +7,26 @@ import Card from "../../components/ui/Card";
 const BG = ["","A+","A-","B+","B-","O+","O-","AB+","AB-"];
 
 export default function HospitalDonors() {
-  const [filters, setFilters] = useState({ bloodGroup:"", availability:"" });
-  const { data, isLoading } = useGetHospitalDonorsQuery(filters);
+  const [bloodGroup, setBloodGroup]     = useState("");
+  const [availability, setAvailability] = useState("");
+
+  // Only include params that have a value — sending availability:"" causes
+  // the backend to treat it as false and hide all available donors
+  const queryParams = {};
+  if (bloodGroup)   queryParams.bloodGroup   = bloodGroup;
+  if (availability) queryParams.availability = availability;
+
+  const { data, isLoading } = useGetHospitalDonorsQuery(queryParams);
   const donors = data?.data || [];
-  const setF = (k,v) => setFilters((p) => ({ ...p, [k]: v }));
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:"20px" }}>
       <Card style={{ padding:"16px 20px" }}>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:"12px" }}>
-          <select value={filters.bloodGroup} onChange={(e) => setF("bloodGroup",e.target.value)} style={sel}>
+          <select value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)} style={sel}>
             {BG.map((g) => <option key={g} value={g}>{g || "All Blood Groups"}</option>)}
           </select>
-          <select value={filters.availability} onChange={(e) => setF("availability",e.target.value)} style={sel}>
+          <select value={availability} onChange={(e) => setAvailability(e.target.value)} style={sel}>
             <option value="">All Donors</option>
             <option value="true">Available Now</option>
             <option value="false">Not Available</option>

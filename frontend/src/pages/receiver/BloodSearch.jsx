@@ -64,7 +64,11 @@ export default function BloodSearch() {
         {/* Blood group quick-pick */}
         <div style={{ display:"flex", gap:"8px", marginTop:"16px", flexWrap:"wrap" }}>
           {BG.map((g) => (
-            <button key={g} onClick={() => setBloodGroup(g)}
+            <button key={g} onClick={() => {
+              setBloodGroup(g);
+              searchHospitals({ bloodGroup: g, city });
+              setSearched(true);
+            }}
               style={{ padding:"6px 14px", borderRadius:"999px", border:`1px solid ${bloodGroup===g?"#E8192C":"#2A2A30"}`, background:bloodGroup===g?"rgba(232,25,44,0.12)":"#1F1F24", color:bloodGroup===g?"#FF4D5E":"#8E8E9A", fontSize:"13px", fontWeight:700, cursor:"pointer", fontFamily:"'Syne',sans-serif" }}>
               {g}
             </button>

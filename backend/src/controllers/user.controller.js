@@ -149,3 +149,142 @@ export const markAllRead = asyncHandler(async (req, res) => {
   );
   return res.status(200).json({ success: true, message: "All notifications marked as read" });
 });
+
+// ─── @route  PATCH /api/users/commit-donation/:requestId ─────────────────────
+// ─── @access Private (donor only)
+// Donor clicks "I'm Coming" — locks the request and notifies the hospital
+export const commitToDonate = asyncHandler(async (req, res) => {
+  const { estimatedArrival = 30, note = "" } = req.body;
+
+  const request = await BloodRequest.findById(req.params.requestId)
+    .populate("hospital", "name location contact")
+    .populate("requester", "name");
+
+  if (!request) throw new ApiError("Request not found", 404);
+  if (request.bloodGroup !== req.user.bloodGroup)
+    throw new ApiError("Your blood group does not match this request", 400);
+  if (request.status !== "pending")
+    throw new ApiError(`Request is already ${request.status} — no longer available`, 400);
+  if (!req.user.isEligibleToDonate?.())
+    throw new ApiError("You are not eligible to donate yet (56-day cooldown)", 400);
+
+  // Lock the request to this donor
+  request.status = "donor_committed";
+  request.committedDonor = req.user._id;
+  request.committedAt = new Date();
+  request.estimatedArrival = estimatedArrival;
+  request.commitNote = note;
+  await request.save();
+
+  // ── Notifications ──────────────────────────────────────────────────────────
+  const { emitToUser, emitToRoom, broadcastToRole } = await import("../sockets/emitter.js");
+  const Notification = (await import("../models/Notification.js")).default;
+  const Hospital = (await import("../models/Hospital.js")).default;
+
+  // 1. Notify the hospital
+  const hospitalNotif = await Notification.create({
+    recipient: request.hospital._id,
+    recipientModel: "Hospital",
+    type: "donor_coming",
+    title: "Donor On The Way 🩸",
+    message: `${req.user.name} (${req.user.bloodGroup}) committed to donate. ETA: ${estimatedArrival} min.`,
+    data: { requestId: request._id, donorId: req.user._id, estimatedArrival },
+  });
+  emitToUser(request.hospital._id.toString(), "donor_committed", {
+    notification: hospitalNotif,
+    request: { _id: request._id, bloodGroup: request.bloodGroup, units: request.units },
+    donor: { _id: req.user._id, name: req.user.name, bloodGroup: req.user.bloodGroup, phone: req.user.phone },
+    estimatedArrival,
+    note,
+  });
+
+  // 2. Notify the patient (requester)
+  const patientNotif = await Notification.create({
+    recipient: request.requester._id,
+    recipientModel: "User",
+    type: "donor_coming",
+    title: "Donor is Coming! 🎉",
+    message: `A donor with ${req.user.bloodGroup} blood is on their way. ETA: ${estimatedArrival} min.`,
+    data: { requestId: request._id },
+  });
+  emitToUser(request.requester._id.toString(), "donor_committed", {
+    notification: patientNotif,
+    estimatedArrival,
+  });
+
+  // 3. Notify admins
+  emitToRoom("admin_room", "donor_committed", {
+    donorName: req.user.name,
+    requestId: request._id,
+    hospitalName: request.hospital.name,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: `Committed! Head to ${request.hospital.name}. They have been notified.`,
+    data: {
+      requestId: request._id,
+      hospital: request.hospital,
+      estimatedArrival,
+    },
+  });
+});
+
+// ─── @route  PATCH /api/users/cancel-commit/:requestId ───────────────────────
+// ─── @access Private (donor only)
+// Donor cancels their commitment — request goes back to pending
+export const cancelCommit = asyncHandler(async (req, res) => {
+  const request = await BloodRequest.findOne({
+    _id: req.params.requestId,
+    committedDonor: req.user._id,
+    status: "donor_committed",
+  }).populate("hospital", "name").populate("requester", "name");
+
+  if (!request) throw new ApiError("No active commitment found for this request", 404);
+
+  // Revert to pending so other donors can step in
+  request.status = "pending";
+  request.committedDonor = null;
+  request.committedAt = null;
+  request.estimatedArrival = null;
+  request.commitNote = null;
+  request.commitCancelled = true;
+  await request.save();
+
+  const { emitToUser } = await import("../sockets/emitter.js");
+  const Notification = (await import("../models/Notification.js")).default;
+
+  // Notify hospital the donor cancelled
+  const notif = await Notification.create({
+    recipient: request.hospital._id,
+    recipientModel: "Hospital",
+    type: "donor_cancelled",
+    title: "Donor Cancelled ⚠️",
+    message: `${req.user.name} cancelled their commitment. Request is open again.`,
+    data: { requestId: request._id },
+  });
+  emitToUser(request.hospital._id.toString(), "donor_cancel_commit", {
+    notification: notif,
+    requestId: request._id,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Commitment cancelled. The request is open again for other donors.",
+  });
+});
+
+// ─── @route  GET /api/users/my-commits ───────────────────────────────────────
+// ─── @access Private (donor only)
+// Get donor's active commitments
+export const getMyCommits = asyncHandler(async (req, res) => {
+  const commits = await BloodRequest.find({
+    committedDonor: req.user._id,
+    status: "donor_committed",
+  })
+    .populate("hospital", "name location contact")
+    .populate("requester", "name bloodGroup")
+    .sort({ committedAt: -1 });
+
+  return res.status(200).json({ success: true, data: commits });
+});
