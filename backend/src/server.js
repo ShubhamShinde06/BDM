@@ -22,31 +22,43 @@ import userRoutes from "./routes/user.routes.js";
 const app = express();
 const httpServer = createServer(app);
 
+// ─── Allowed Origins (Frontend URLs) ──────────────────────────────────────────
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://bdm-0.netlify.app"
+];
+
 // ─── Socket.io setup ──────────────────────────────────────────────────────────
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || "https://bdm-0.onrender.com",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
   connectionStateRecovery: {
-    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    maxDisconnectionDuration: 2 * 60 * 1000,
     skipMiddlewares: false,
   },
   pingTimeout: 30000,
   pingInterval: 10000,
 });
 
-// Inject io into the emitter module (used by controllers)
+// Inject io into emitter
 initEmitter(io);
 
-// Register all socket event handlers
+// Register socket handlers
 initSocketHandlers(io);
 
 // ─── Express middleware ───────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -83,18 +95,23 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ─── Start server ─────────────────────────────────────────────────────────────
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    await connectDB();
 
-  httpServer.listen(PORT, () => {
-    console.log(`\n🩸 BloodLink API running on port ${PORT}`);
-    console.log(`📡 Socket.io ready`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-    console.log(`📋 API Base: http://localhost:${PORT}/api`);
-    console.log(`❤️  Health:   http://localhost:${PORT}/health\n`);
-  });
+    httpServer.listen(PORT, () => {
+      console.log(`\n🩸 BloodLink API running on port ${PORT}`);
+      console.log(`📡 Socket.io ready`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+      console.log(`📋 API Base: http://localhost:${PORT}/api`);
+      console.log(`❤️  Health: http://localhost:${PORT}/health\n`);
+    });
+  } catch (error) {
+    console.error("❌ Server startup error:", error);
+    process.exit(1);
+  }
 };
 
 startServer();
