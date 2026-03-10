@@ -10,8 +10,8 @@ export default function HospitalDonors() {
   const [bloodGroup, setBloodGroup]     = useState("");
   const [availability, setAvailability] = useState("");
 
-  // Only include params that have a value — sending availability:"" causes
-  // the backend to treat it as false and hide all available donors
+  // Only include params that have a value
+  // Sending availability:"" causes backend to treat it as false → hides all available donors
   const queryParams = {};
   if (bloodGroup)   queryParams.bloodGroup   = bloodGroup;
   if (availability) queryParams.availability = availability;

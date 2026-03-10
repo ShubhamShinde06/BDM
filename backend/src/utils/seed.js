@@ -24,7 +24,6 @@ const seed = async () => {
     console.log("🗑️ Cleared all collections");
 
     // ── Main Admin ──
-    // .create() triggers pre-save hook → bcrypt hashes password ✓
     const mainAdmin = await User.create({
       name: "Super Admin",
       email: "admin@bloodlink.in",
@@ -36,14 +35,13 @@ const seed = async () => {
     console.log("✅ Main admin:", mainAdmin.email);
 
     // ── Hospitals ──
-    // MUST use individual .create() — insertMany() skips pre-save hooks
-    // so passwords would be stored as plain text → "Invalid credentials"
+    // MUST use individual .create() — insertMany() skips pre-save hooks → plain text passwords
     const h1 = await Hospital.create({
       name: "Apollo Hospital",
       email: "apollo@bloodlink.in",
       password: "Hospital@123",
       licenseNumber: "LIC-APOLLO-2041",
-      contact: { phone: "+91-22-34567890", website: "https://www.apollohospitals.com" },
+      contact: { phone: "22-34567890", website: "https://www.apollohospitals.com" },
       location: { address: "Parel", city: "Mumbai", country: "India" },
       status: "approved",
       approvedBy: mainAdmin._id,
@@ -61,7 +59,7 @@ const seed = async () => {
       email: "aiims@bloodlink.in",
       password: "Hospital@123",
       licenseNumber: "LIC-AIIMS-3082",
-      contact: { phone: "+91-11-26588500" },
+      contact: { phone: "11-26588500" },
       location: { address: "Ansari Nagar", city: "Delhi", country: "India" },
       status: "approved",
       approvedBy: mainAdmin._id,
@@ -79,7 +77,7 @@ const seed = async () => {
       email: "rubyhall@bloodlink.in",
       password: "Hospital@123",
       licenseNumber: "LIC-RUBY-5541",
-      contact: { phone: "+91-20-26123391" },
+      contact: { phone: "20-26123391" },
       location: { address: "Dhole Patil Road", city: "Pune", country: "India" },
       status: "pending",
     });
@@ -94,11 +92,11 @@ const seed = async () => {
       password: "User@123",
       role: "donor",
       bloodGroup: "O+",
-      phone: "+91-9876543210",
+      phone: "9876543210",
       location: { city: "Mumbai" },
       availability: true,
       totalDonations: 3,
-      lastDonation: new Date("2025-10-01"),
+      lastDonation: new Date("2025-10-01"), // 156+ days ago — eligible
     });
 
     const priya = await User.create({
@@ -107,7 +105,7 @@ const seed = async () => {
       password: "User@123",
       role: "receiver",
       bloodGroup: "A+",
-      phone: "+91-9876543211",
+      phone: "9876543211",
       location: { city: "Mumbai" },
     });
 
@@ -117,7 +115,7 @@ const seed = async () => {
       password: "User@123",
       role: "donor",
       bloodGroup: "B-",
-      phone: "+91-9876543212",
+      phone: "9876543212",
       location: { city: "Delhi" },
       availability: true,
       totalDonations: 1,
@@ -139,7 +137,7 @@ const seed = async () => {
       password: "User@123",
       role: "receiver",
       bloodGroup: "O-",
-      phone: "+91-9876543213",
+      phone: "9876543213",
       location: { city: "Delhi" },
     });
 
@@ -149,15 +147,28 @@ const seed = async () => {
     // BloodRequest has no password field so insertMany is safe here
     const requests = await BloodRequest.insertMany([
       {
+        // O+ request → rahul (O+ donor) can click "I'm Coming" on this
+        requester: priya._id,
+        hospital: h1._id,
+        bloodGroup: "O+",
+        units: 2,
+        urgency: "critical",
+        status: "pending",
+        reason: "Emergency surgery — patient needs O+ urgently",
+        patientName: "Rohan Mehta",
+      },
+      {
+        // A+ request → for testing A+ donor flow
         requester: priya._id,
         hospital: h1._id,
         bloodGroup: "A+",
         units: 1,
         urgency: "high",
         status: "pending",
-        reason: "Emergency surgery",
+        reason: "Scheduled operation",
       },
       {
+        // O- request → vikram is receiver
         requester: vikram._id,
         hospital: h2._id,
         bloodGroup: "O-",
@@ -167,6 +178,16 @@ const seed = async () => {
         respondedBy: h2._id,
         respondedAt: new Date(),
         patientName: "Vikram Joshi",
+      },
+      {
+        // B- request → arjun (B- donor) can commit to this
+        requester: vikram._id,
+        hospital: h2._id,
+        bloodGroup: "B-",
+        units: 1,
+        urgency: "medium",
+        status: "pending",
+        reason: "Thalassemia transfusion",
       },
       {
         requester: priya._id,
@@ -191,17 +212,24 @@ const seed = async () => {
     console.log("✅ Donation history seeded");
 
     console.log("\n🌱 Seeded successfully!\n");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("📧 Credentials:");
-    console.log("  admin@bloodlink.in    | Admin@123    | loginAs: user     (main_admin)");
-    console.log("  apollo@bloodlink.in   | Hospital@123 | loginAs: hospital (approved)");
-    console.log("  aiims@bloodlink.in    | Hospital@123 | loginAs: hospital (approved)");
-    console.log("  rubyhall@bloodlink.in | Hospital@123 | loginAs: hospital (pending — blocked)");
-    console.log("  rahul@bloodlink.in    | User@123     | loginAs: user     (donor O+)");
-    console.log("  priya@bloodlink.in    | User@123     | loginAs: user     (receiver A+)");
-    console.log("  arjun@bloodlink.in    | User@123     | loginAs: user     (donor B-)");
-    console.log("  vikram@bloodlink.in   | User@123     | loginAs: user     (receiver O-)");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    console.log("  admin@bloodlink.in    | Admin@123    | loginAs: user     → main_admin");
+    console.log("  apollo@bloodlink.in   | Hospital@123 | loginAs: hospital → approved ✅");
+    console.log("  aiims@bloodlink.in    | Hospital@123 | loginAs: hospital → approved ✅");
+    console.log("  rubyhall@bloodlink.in | Hospital@123 | loginAs: hospital → pending 🔒");
+    console.log("  rahul@bloodlink.in    | User@123     | loginAs: user     → donor O+");
+    console.log("  priya@bloodlink.in    | User@123     | loginAs: user     → receiver A+");
+    console.log("  arjun@bloodlink.in    | User@123     | loginAs: user     → donor B-");
+    console.log("  vikram@bloodlink.in   | User@123     | loginAs: user     → receiver O-");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("\n🧪 Test the I'm Coming flow:");
+    console.log("  1. Login as rahul (O+ donor)");
+    console.log("  2. Go to Nearby Requests");
+    console.log("  3. See the critical O+ request at Apollo Hospital");
+    console.log("  4. Click I'm Coming → set ETA → Confirm");
+    console.log("  5. Login as apollo (hospital) → see 🚗 Donor Coming tab");
+    console.log("  6. Hospital accepts → then marks Complete\n");
 
     process.exit(0);
   } catch (error) {

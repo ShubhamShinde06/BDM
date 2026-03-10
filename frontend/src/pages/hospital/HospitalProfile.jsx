@@ -29,7 +29,8 @@ export default function HospitalProfile() {
   if (isLoading) return <div style={{ display:"flex", justifyContent:"center", padding:"60px" }}><Spinner /></div>;
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:"20px", maxWidth:"620px" }}>
+    <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+    <div style={{ display:"flex", flexDirection:"column", gap:"20px", maxWidth:"620px", width: "100%" }}>
       <Card>
         <div style={{ display:"flex", alignItems:"center", gap:"16px", marginBottom:"20px" }}>
           <div style={{ width:"56px", height:"56px", borderRadius:"14px", background:"rgba(232,25,44,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"24px" }}>🏥</div>
@@ -76,6 +77,8 @@ export default function HospitalProfile() {
           )}
         </div>
       </Card>
+    </div>  
     </div>
+    
   );
 }

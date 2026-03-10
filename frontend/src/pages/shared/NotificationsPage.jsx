@@ -11,6 +11,8 @@ const TYPE_ICON = {
   hospital_approved:"🎉",
   hospital_rejected:"❌",
   donor_needed:     "🩸",
+  donor_committed:  "🚗",
+  donor_cancelled:  "⚠️",
   donation_complete:"🏆",
   low_stock_alert:  "⚠️",
   system:           "ℹ️",

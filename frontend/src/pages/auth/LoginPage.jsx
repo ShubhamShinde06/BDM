@@ -42,7 +42,7 @@ export default function LoginPage() {
     try {
       const data = await login(form).unwrap();
       dispatch(
-        setCredentials({ user: data.user, accessToken: data.accessToken }),
+        setCredentials({ user: data.user, accessToken: data.accessToken })
       );
       toast.success(`Welcome back, ${data.user.name}!`);
       navigate(ROLE_HOME[data.user.role] || "/");
@@ -78,24 +78,34 @@ export default function LoginPage() {
         }}
       />
 
-      <div style={{ width: "100%", maxWidth: "420px" }} className="fade-up">
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "420px",
+        }}
+        className="fade-up"
+      >
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <span
-            className="heartbeat"
-            style={{ fontSize: "52px", display: "block", marginBottom: "12px" }}
-          >
-            🩸
-          </span>
+        <div
+          style={{
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            marginBottom: "32px",
+          }}
+        >
+          <img src="logo.ico" width="100px" alt="sidebarLogo" />
+
           <h1
             style={{
-              fontFamily: "'Syne',sans-serif",
-              fontSize: "28px",
+              fontFamily: "sans-serif",
+              fontSize: "25px",
               fontWeight: 800,
               color: "#F5F5F7",
             }}
           >
-            Blood<span style={{ color: "#E8192C" }}>Link</span>
+            <span style={{ color: "#E8192C" }}>Blood</span> Donation Management
           </h1>
           <p style={{ color: "#8E8E9A", fontSize: "14px", marginTop: "6px" }}>
             Sign in to your account
@@ -146,84 +156,78 @@ export default function LoginPage() {
           </form>
 
           <div
-            style={{
-              marginTop: "20px",
-              padding: "14px",
-              background: "#1F1F24",
-              borderRadius: "10px",
-              border: "1px solid #2A2A30",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "11px",
-                color: "#8E8E9A",
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                marginBottom: "8px",
-              }}
-            >
-              Demo Credentials
-            </p>
+  style={{
+    marginTop: "20px",
+    padding: "14px",
+    background: "#1F1F24",
+    borderRadius: "10px",
+    border: "1px solid #2A2A30",
+  }}
+>
+  <p
+    style={{
+      fontSize: "11px",
+      color: "#8E8E9A",
+      fontWeight: 700,
+      letterSpacing: "0.06em",
+      textTransform: "uppercase",
+      marginBottom: "8px",
+    }}
+  >
+    Demo Credentials
+  </p>
 
-            {[
-              {
-                label: "Main Admin",
-                email: "admin@bloodlink.in",
-                pwd: "Admin@123",
-                as: "user",
-              },
-              {
-                label: "Hospital Admin",
-                email: "apollo@bloodlink.in",
-                pwd: "Hospital@123",
-                as: "hospital",
-              },
-              {
-                label: "Donor",
-                email: "rahul@bloodlink.in",
-                pwd: "User@123",
-                as: "user",
-              },
-              {
-                label: "Patient",
-                email: "priya@bloodlink.in",
-                pwd: "User@123",
-                as: "user",
-              },
-            ].map((d) => (
-              <button
-                key={d.email}
-                onClick={() =>
-                  setForm({ email: d.email, password: d.pwd, loginAs: d.as })
-                }
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "5px 8px",
-                  background: "none",
-                  border: "none",
-                  color: "#8E8E9A",
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  borderRadius: "6px",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#2A2A30")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "none")
-                }
-              >
-                <span style={{ color: "#FF4D5E", fontWeight: 700 }}>
-                  {d.label}:
-                </span>{" "}
-                {d.email}
-              </button>
-            ))}
-          </div>
+  {[
+    {
+      label: "Main Admin",
+      email: "admin@bloodlink.in",
+      pwd: "Admin@123",
+      as: "user",
+    },
+    {
+      label: "Hospital Admin",
+      email: "apollo@bloodlink.in",
+      pwd: "Hospital@123",
+      as: "hospital",
+    },
+    {
+      label: "Donor",
+      email: "rahul@bloodlink.in",
+      pwd: "User@123",
+      as: "user",
+    },
+    {
+      label: "Patient",
+      email: "priya@bloodlink.in",
+      pwd: "User@123",
+      as: "user",
+    },
+  ].map((d) => (
+    <button
+      key={d.email}
+      onClick={() =>
+        setForm({ email: d.email, password: d.pwd, loginAs: d.as })
+      }
+      style={{
+        display: "block",
+        width: "100%",
+        textAlign: "left",
+        padding: "5px 8px",
+        background: "none",
+        border: "none",
+        color: "#8E8E9A",
+        fontSize: "12px",
+        cursor: "pointer",
+        borderRadius: "6px",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#2A2A30")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+    >
+      <span style={{ color: "#FF4D5E", fontWeight: 700 }}>{d.label}:</span>{" "}
+      {d.email}
+    </button>
+  ))}
+</div>
         </Card>
 
         <p

@@ -18,12 +18,13 @@ const sizes = {
 
 export default function Button({
   children, variant = "primary", size = "md",
-  onClick, disabled, type = "button", loading, style = {}, full,
+  onClick, disabled, type = "button", loading, style = {}, full, className,
 }) {
   return (
     <button
       type={type} onClick={onClick}
       disabled={disabled || loading}
+      className={className}
       style={{
         display: "inline-flex", alignItems: "center", justifyContent: "center",
         gap: "7px", borderRadius: "10px", fontFamily: "'DM Sans',sans-serif",

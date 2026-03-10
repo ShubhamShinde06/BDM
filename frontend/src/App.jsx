@@ -79,7 +79,7 @@ export default function App() {
             <DashboardLayout />
           </ProtectedRoute>
         }>
-          <Route index        element={<AdminOverview />} />
+          <Route index            element={<AdminOverview />} />
           <Route path="hospitals" element={<AdminHospitals />} />
           <Route path="users"     element={<AdminUsers />} />
           <Route path="requests"  element={<AdminRequests />} />
@@ -93,7 +93,7 @@ export default function App() {
             <DashboardLayout />
           </ProtectedRoute>
         }>
-          <Route index           element={<HospitalDashboard />} />
+          <Route index            element={<HospitalDashboard />} />
           <Route path="inventory" element={<HospitalInventory />} />
           <Route path="requests"  element={<HospitalRequests />} />
           <Route path="donors"    element={<HospitalDonors />} />

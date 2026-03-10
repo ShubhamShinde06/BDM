@@ -35,10 +35,10 @@ export default function HospitalRequests() {
     } catch (e) { toast.error(e?.data?.message || "Failed"); }
   };
 
-  const handleComplete = async (id) => {
+  const handleComplete = async (r) => {
     try {
-      await complete({ id }).unwrap();
-      toast.success("Donation marked complete!");
+      await complete({ id: r._id, donorId: r.committedDonor?._id || r.assignedDonor || undefined }).unwrap();
+      toast.success("Donation marked complete! Donor history updated.");
     } catch (e) { toast.error(e?.data?.message || "Failed"); }
   };
 
@@ -80,7 +80,7 @@ export default function HospitalRequests() {
                       <Button size="xs" variant="danger"  onClick={() => { setRejectModal(r._id); setRejectReason(""); }}>✕ Reject</Button>
                     </>)}
                     {r.status === "accepted" && (
-                      <Button size="xs" variant="info" loading={completing} onClick={() => handleComplete(r._id)}>🏆 Complete</Button>
+                      <Button size="xs" variant="info" loading={completing} onClick={() => handleComplete(r)}>🏆 Complete</Button>
                     )}
                     {r.status === "donor_committed" && r.committedDonor && (
                       <div style={{ fontSize:"11px", color:"#22C55E", background:"rgba(34,197,94,0.08)", padding:"4px 8px", borderRadius:"6px", marginTop:"4px", width:"100%" }}>

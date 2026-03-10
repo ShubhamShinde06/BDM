@@ -13,7 +13,7 @@ export default function ProfilePage() {
   const { data, isLoading } = useGetUserProfileQuery();
   const [update, { isLoading: saving }] = useUpdateUserProfileMutation();
   const user = data?.data;
-
+  console.log(user)
   const [form, setForm] = useState({ name:"", phone:"", "location.city":"" });
 
   useEffect(() => {
@@ -52,13 +52,13 @@ export default function ProfilePage() {
           <Input label="Full Name" value={form.name} onChange={(e) => setForm({...form, name:e.target.value})} icon="👤" />
           <Input label="Email" value={user?.email||""} readOnly icon="✉" />
           <Input label="Blood Group" value={user?.bloodGroup||""} readOnly icon="🩸" />
-          <Input label="Phone" value={form.phone} onChange={(e) => setForm({...form, phone:e.target.value})} placeholder="+92 300 0000000" icon="📞" />
-          <Input label="City" value={form["location.city"]} onChange={(e) => setForm({...form, "location.city":e.target.value})} placeholder="Karachi" icon="📍" />
+          <Input label="Phone" value={form.phone} onChange={(e) => setForm({...form, phone:e.target.value})}  icon="📞" />
+          <Input label="City" value={form["location.city"]} onChange={(e) => setForm({...form, "location.city":e.target.value})} placeholder="" icon="📍" />
           <Button type="submit" loading={saving} style={{ alignSelf:"flex-start" }}>Save Changes</Button>
         </form>
       </Card>
 
-      <Card>
+      {user?.role === "donor" && <Card>
         <h4 style={{ fontFamily:"'Syne',sans-serif", fontSize:"14px", fontWeight:700, marginBottom:"12px", color:"#8E8E9A" }}>Account Info</h4>
         <div style={{ display:"flex", flexDirection:"column", gap:"9px" }}>
           {[
@@ -72,7 +72,8 @@ export default function ProfilePage() {
             </div>
           ))}
         </div>
-      </Card>
+      </Card>}
+      
     </div>
     </div>
     

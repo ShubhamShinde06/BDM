@@ -33,7 +33,7 @@ export default function Input({
           <textarea name={name} value={value} onChange={onChange} placeholder={placeholder} required={required} rows={rows || 3}
             style={{ ...base, padding: "11px 14px", resize: "vertical" }} />
         ) : (
-          <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder}
+          <input maxLength={10} type={type} name={name} value={value} onChange={onChange} placeholder={placeholder}
             required={required} readOnly={readOnly} style={base} />
         )}
       </div>

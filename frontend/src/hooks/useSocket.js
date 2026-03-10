@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { connectSocket, disconnectSocket } from "../socket/socket";
@@ -9,9 +9,12 @@ export default function useSocket() {
   const dispatch = useDispatch();
   const token = useSelector(selectCurrentToken);
   const role  = useSelector(selectCurrentRole);
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
     if (!token) return;
+
     const s = connectSocket(token);
 
     s.on("inventory_changed", () => {
@@ -43,15 +46,15 @@ export default function useSocket() {
       toast.success("🏆 Donation recorded!", { style: ts });
     });
 
-    s.on("donor_committed", ({ notification, estimatedArrival }) => {
-      dispatch(api.util.invalidateTags(["MyCommits", "NearbyRequests", "HospitalRequests", "Notifications"]));
+    s.on("donor_committed", ({ notification }) => {
+      dispatch(api.util.invalidateTags(["MyCommits", "NearbyRequests", "HospitalRequests", "Notifications", "MyRequests"]));
       if (notification?.title) {
-        toast(`🩸 ${notification.title}`, { style: ts, duration: 6000 });
+        toast(`🚗 ${notification.title}`, { style: ts, duration: 6000 });
       }
     });
 
-    s.on("donor_cancel_commit", ({ requestId }) => {
-      dispatch(api.util.invalidateTags(["HospitalRequests", "NearbyRequests"]));
+    s.on("donor_cancel_commit", () => {
+      dispatch(api.util.invalidateTags(["HospitalRequests", "NearbyRequests", "MyRequests"]));
       toast("⚠️ A donor cancelled their commitment", { style: ts });
     });
 
@@ -65,19 +68,27 @@ export default function useSocket() {
 
     s.on("force_logout", ({ reason }) => {
       toast.error(`🚫 ${reason}`);
-      setTimeout(() => { dispatch({ type: "auth/logout" }); window.location.href = "/login"; }, 2000);
+      setTimeout(() => {
+        dispatch({ type: "auth/logout" });
+        window.location.href = "/login";
+      }, 2000);
     });
 
     s.on("hospital_approved", () => {
       dispatch(api.util.invalidateTags(["AdminHospitals", "AdminDashboard"]));
     });
 
+    // Only disconnect when component fully unmounts, not on every token change
     return () => {
-      ["inventory_changed","inventory_bulk_updated","new_blood_request","request_status_update",
-       "donor_needed","donation_recorded","notification","low_stock_alert","force_logout",
-       "hospital_approved","donor_committed","donor_cancel_commit"]
-        .forEach((e) => s.off(e));
-      disconnectSocket();
+      const EVENTS = [
+        "inventory_changed","inventory_bulk_updated","new_blood_request",
+        "request_status_update","donor_needed","donation_recorded","notification",
+        "low_stock_alert","force_logout","hospital_approved",
+        "donor_committed","donor_cancel_commit",
+      ];
+      EVENTS.forEach((e) => s.off(e));
+      // Only fully disconnect if token is gone (logged out)
+      if (!token) disconnectSocket();
     };
   }, [token, role, dispatch]);
 }

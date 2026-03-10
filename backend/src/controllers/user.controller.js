@@ -3,6 +3,7 @@ import DonationHistory from "../models/DonationHistory.js";
 import Notification from "../models/Notification.js";
 import BloodRequest from "../models/BloodRequest.js";
 import { asyncHandler, ApiError } from "../middleware/error.js";
+import { emitToUser, emitToRoom } from "../sockets/emitter.js";
 
 // ─── @route  GET /api/users/profile ──────────────────────────────────────────
 export const getProfile = asyncHandler(async (req, res) => {
@@ -71,9 +72,13 @@ export const getDonationHistory = asyncHandler(async (req, res) => {
 export const getNearbyRequests = asyncHandler(async (req, res) => {
   const { city, page = 1, limit = 10 } = req.query;
 
+  // Show pending requests + any request this donor has committed to
   const filter = {
     bloodGroup: req.user.bloodGroup,
-    status: "pending",
+    $or: [
+      { status: "pending" },
+      { status: "donor_committed", committedDonor: req.user._id },
+    ],
   };
 
   const requests = await BloodRequest.find(filter)
@@ -82,6 +87,7 @@ export const getNearbyRequests = asyncHandler(async (req, res) => {
       select: "name location contact",
       match: city ? { "location.city": new RegExp(city, "i") } : {},
     })
+    .populate("committedDonor", "name")
     .sort({ urgency: -1, createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(parseInt(limit));
@@ -161,10 +167,23 @@ export const commitToDonate = asyncHandler(async (req, res) => {
     .populate("requester", "name");
 
   if (!request) throw new ApiError("Request not found", 404);
-  if (request.bloodGroup !== req.user.bloodGroup)
-    throw new ApiError("Your blood group does not match this request", 400);
+
+  // If donor already committed to this request, return success (idempotent)
+  if (
+    request.status === "donor_committed" &&
+    request.committedDonor?.toString() === req.user._id.toString()
+  ) {
+    return res.status(200).json({
+      success: true,
+      message: `You are already committed to this request at ${request.hospital.name}.`,
+      data: { requestId: request._id, hospital: request.hospital, estimatedArrival: request.estimatedArrival },
+    });
+  }
+
   if (request.status !== "pending")
-    throw new ApiError(`Request is already ${request.status} — no longer available`, 400);
+    throw new ApiError(`This request is already ${request.status} — another donor may have taken it.`, 400);
+  if (request.bloodGroup !== req.user.bloodGroup)
+    throw new ApiError(`Blood group mismatch. Request needs ${request.bloodGroup}, you are ${req.user.bloodGroup}.`, 400);
   if (!req.user.isEligibleToDonate?.())
     throw new ApiError("You are not eligible to donate yet (56-day cooldown)", 400);
 
@@ -177,9 +196,6 @@ export const commitToDonate = asyncHandler(async (req, res) => {
   await request.save();
 
   // ── Notifications ──────────────────────────────────────────────────────────
-  const { emitToUser, emitToRoom, broadcastToRole } = await import("../sockets/emitter.js");
-  const Notification = (await import("../models/Notification.js")).default;
-  const Hospital = (await import("../models/Hospital.js")).default;
 
   // 1. Notify the hospital
   const hospitalNotif = await Notification.create({
@@ -251,8 +267,6 @@ export const cancelCommit = asyncHandler(async (req, res) => {
   request.commitCancelled = true;
   await request.save();
 
-  const { emitToUser } = await import("../sockets/emitter.js");
-  const Notification = (await import("../models/Notification.js")).default;
 
   // Notify hospital the donor cancelled
   const notif = await Notification.create({

@@ -15,7 +15,7 @@ export default function AdminRequests() {
     <div style={{ display:"flex", flexDirection:"column", gap:"20px" }}>
       <Card style={{ padding:"16px 20px" }}>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:"12px" }}>
-          {[["status",["","pending","accepted","rejected","completed","cancelled"]],
+          {[["status",["","pending","donor_committed","accepted","rejected","completed","cancelled"]],
             ["urgency",["","critical","high","medium","low"]],
             ["bloodGroup",["","A+","A-","B+","B-","O+","O-","AB+","AB-"]]].map(([key,opts])=>(
             <select key={key} value={filters[key]} onChange={(e)=>setF(key,e.target.value)} style={sel}>

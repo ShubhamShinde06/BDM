@@ -51,7 +51,7 @@ export default function Topbar() {
     <header style={{ height: "66px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", borderBottom: "1px solid #2A2A30", background: "rgba(17,17,20,0.7)", backdropFilter: "blur(10px)", flexShrink: 0, position: "sticky", top: 0, zIndex: 50 }}>
       <div>
         <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: "17px", fontWeight: 700, color: "#F5F5F7" }}>{title}</h2>
-        <p style={{ fontSize: "12px", color: "#8E8E9A", marginTop: "1px" }}>BloodLink Platform</p>
+        <p style={{ fontSize: "12px", color: "#8E8E9A", marginTop: "1px" }}>BDM Platform</p>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>

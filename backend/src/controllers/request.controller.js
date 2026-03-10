@@ -110,7 +110,7 @@ export const getHospitalRequests = asyncHandler(async (req, res) => {
   const [requests, total] = await Promise.all([
     BloodRequest.find(filter)
       .populate("requester", "name email phone bloodGroup location")
-      .populate("committedDonor", "name phone bloodGroup location")
+      .populate("committedDonor", "_id name phone bloodGroup location")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit)),
@@ -192,33 +192,39 @@ export const respondToRequest = asyncHandler(async (req, res) => {
 // ─── @route  PATCH /api/requests/:id/complete ────────────────────────────────
 // ─── @access Private (hospital_admin)
 export const completeRequest = asyncHandler(async (req, res) => {
-  const { donorId } = req.body;
+  const { donorId: bodyDonorId } = req.body;
 
-  const request = await BloodRequest.findById(req.params.id);
+  const request = await BloodRequest.findById(req.params.id)
+    .populate("committedDonor", "_id name");
   if (!request) throw new ApiError("Request not found", 404);
   if (request.status !== "accepted") throw new ApiError("Request must be accepted first", 400);
+
+  // Auto-use committedDonor if no donorId explicitly passed
+  const donorId = bodyDonorId || request.committedDonor?._id?.toString() || null;
 
   request.status = "completed";
   request.completedAt = new Date();
   if (donorId) request.assignedDonor = donorId;
   await request.save();
 
-  // Log donation history
-  const donationEntry = await DonationHistory.create({
-    donor: donorId || null,
-    hospital: req.user._id,
-    request: request._id,
-    bloodGroup: request.bloodGroup,
-    units: request.units,
-    donatedAt: new Date(),
-  });
+  let donationEntry = null;
 
-  // Update donor stats
   if (donorId) {
+    // Only create history when a real donor is linked (donor field is required: true)
+    donationEntry = await DonationHistory.create({
+      donor: donorId,
+      hospital: req.user._id,
+      request: request._id,
+      bloodGroup: request.bloodGroup,
+      units: request.units,
+      donatedAt: new Date(),
+    });
+
+    // Update donor stats + start 56-day cooldown
     await User.findByIdAndUpdate(donorId, {
       $inc: { totalDonations: 1 },
       lastDonation: new Date(),
-      availability: false, // 56-day cooldown
+      availability: false,
     });
 
     const donorNotif = await Notification.create({
@@ -240,7 +246,9 @@ export const completeRequest = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    message: "Donation completed and recorded",
+    message: donorId
+      ? "Donation completed and recorded in donor history"
+      : "Request marked complete (no donor linked)",
     data: { request, donation: donationEntry },
   });
 });
