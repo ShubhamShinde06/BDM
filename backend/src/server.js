@@ -25,7 +25,7 @@ const httpServer = createServer(app);
 // ─── Socket.io setup ──────────────────────────────────────────────────────────
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "https://bdm-0.onrender.com",
     methods: ["GET", "POST"],
     credentials: true,
   },
